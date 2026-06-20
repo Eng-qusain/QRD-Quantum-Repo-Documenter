@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    ports:
+      - "8765:8765"
+    volumes:
+      - ../backend/src:/app/src:ro
+      - repodoc_temp:/tmp/repodoc
+    environment:
+      - REPODOC_ENV=development
+      - REPODOC_PORT=8765
+      - REPODOC_LOG_LEVEL=DEBUG
+      - REPODOC_TEMP_DIR=/tmp/repodoc
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8765/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  repodoc_temp:

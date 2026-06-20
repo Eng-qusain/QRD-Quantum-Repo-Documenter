@@ -1,0 +1,63 @@
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage_html/
+.coverage
+coverage.xml
+*.log
+backend/.env
+
+# ─── Node / Electron ─────────────────────────────────────────────────────────
+node_modules/
+electron/dist/
+electron/release/
+electron/.env
+*.local
+
+# ─── Build Artifacts ─────────────────────────────────────────────────────────
+dist/
+build/
+out/
+release/
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Secrets ─────────────────────────────────────────────────────────────────
+.env
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ─── Temp / Output ───────────────────────────────────────────────────────────
+/tmp/
+*.pdf
+!docs/**/*.pdf

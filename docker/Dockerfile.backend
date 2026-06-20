@@ -1,0 +1,28 @@
+# ─── Backend Dockerfile ──────────────────────────────────────────────────────
+FROM python:3.11-slim AS backend
+
+WORKDIR /app
+
+# System dependencies for ReportLab, WeasyPrint, Pillow
+RUN apt-get update && apt-get install -y \
+    libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf2.0-0 \
+    libffi-dev libssl-dev gcc g++ \
+    libpng-dev libjpeg-dev \
+    fonts-liberation fonts-dejavu \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+
+ENV PYTHONPATH=/app/src
+ENV REPODOC_ENV=production
+ENV REPODOC_PORT=8765
+
+EXPOSE 8765
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8765/health')"
+
+CMD ["python", "src/main.py", "--host", "0.0.0.0", "--port", "8765"]
