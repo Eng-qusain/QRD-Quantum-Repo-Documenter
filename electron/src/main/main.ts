@@ -42,13 +42,63 @@ function getBackendPath(): string {
 
 function getPythonPath(): string {
   const backendPath = getBackendPath();
-  const venvPaths = {
+
+  // Prefer the bundled venv (created during CI build)
+  const venvPaths: Record<string, string> = {
     win32: path.join(backendPath, '.venv', 'Scripts', 'python.exe'),
     darwin: path.join(backendPath, '.venv', 'bin', 'python'),
     linux: path.join(backendPath, '.venv', 'bin', 'python'),
   };
-  const platform = process.platform as keyof typeof venvPaths;
-  return venvPaths[platform] || 'python3';
+
+  const venvPython = venvPaths[process.platform];
+  if (venvPython && fs.existsSync(venvPython)) {
+    log.info(`Using bundled venv Python: ${venvPython}`);
+    return venvPython;
+  }
+
+  // Fall back to system Python — install deps on first run
+  log.warn('Bundled .venv not found — falling back to system Python');
+  const systemPython = process.platform === 'win32' ? 'python' : 'python3';
+  return systemPython;
+}
+
+async function ensureDependencies(): Promise<void> {
+  const backendPath = getBackendPath();
+  const venvPaths: Record<string, string> = {
+    win32: path.join(backendPath, '.venv', 'Scripts', 'python.exe'),
+    darwin: path.join(backendPath, '.venv', 'bin', 'python'),
+    linux: path.join(backendPath, '.venv', 'bin', 'python'),
+  };
+
+  const venvPython = venvPaths[process.platform];
+  if (venvPython && fs.existsSync(venvPython)) {
+    return; // Already have bundled venv, nothing to do
+  }
+
+  log.info('Creating Python venv and installing dependencies (first run)...');
+  mainWindow?.webContents.send('backend:installing');
+
+  const systemPython = process.platform === 'win32' ? 'python' : 'python3';
+  const venvDir = path.join(backendPath, '.venv');
+  const requirementsTxt = path.join(backendPath, 'requirements.txt');
+
+  await new Promise<void>((resolve, reject) => {
+    const proc = spawn(systemPython, ['-m', 'venv', venvDir], { cwd: backendPath });
+    proc.on('exit', (code) => code === 0 ? resolve() : reject(new Error(`venv creation failed: ${code}`)));
+    proc.stderr?.on('data', (d) => log.error(`[venv] ${d}`));
+  });
+
+  const pipPath = process.platform === 'win32'
+    ? path.join(venvDir, 'Scripts', 'pip.exe')
+    : path.join(venvDir, 'bin', 'pip');
+
+  await new Promise<void>((resolve, reject) => {
+    const proc = spawn(pipPath, ['install', '-r', requirementsTxt, '--quiet'], { cwd: backendPath });
+    proc.on('exit', (code) => code === 0 ? resolve() : reject(new Error(`pip install failed: ${code}`)));
+    proc.stderr?.on('data', (d) => log.error(`[pip] ${d}`));
+  });
+
+  log.info('Dependencies installed successfully');
 }
 
 async function startBackend(): Promise<void> {
@@ -329,13 +379,14 @@ app.whenReady().then(async () => {
   log.info('App starting...');
 
   try {
+    await ensureDependencies();
     await startBackend();
     log.info('Backend started successfully');
   } catch (err) {
     log.error('Failed to start backend:', err);
     dialog.showErrorBox(
       'Backend Error',
-      'Failed to start the RepoDoc Pro backend. Please check the logs.'
+      `Failed to start the RepoDoc Pro backend.\n\nError: ${err}\n\nPlease ensure Python 3.10+ is installed and try again.`
     );
   }
 
