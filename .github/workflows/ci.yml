@@ -20,6 +20,7 @@ jobs:
     name: Backend Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
 
@@ -58,7 +59,7 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
-          file: backend/coverage.xml
+          files: backend/coverage.xml
           flags: backend
 
   # ─── Frontend Tests ─────────────────────────────────────────────────────────
@@ -110,10 +111,29 @@ jobs:
         working-directory: electron
         run: npm run test:coverage
 
+  # ─── Test Gate (aggregates matrix results for build jobs) ──────────────────
+  tests-passed:
+    name: Tests Passed
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          if [[ "${{ needs.backend-test.result }}" == "failure" ]]; then
+            echo "Backend tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.frontend-test.result }}" == "failure" ]]; then
+            echo "Frontend tests failed"
+            exit 1
+          fi
+          echo "All tests passed or skipped"
+
   # ─── Build Distributables ──────────────────────────────────────────────────
   build-windows:
     name: Build Windows
-    needs: [backend-test, frontend-test]
+    needs: [tests-passed]
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     steps:
@@ -178,7 +198,7 @@ jobs:
 
   build-macos:
     name: Build macOS
-    needs: [backend-test, frontend-test]
+    needs: [tests-passed]
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: macos-15
     steps:
@@ -242,7 +262,7 @@ jobs:
 
   build-linux:
     name: Build Linux
-    needs: [backend-test, frontend-test]
+    needs: [tests-passed]
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
