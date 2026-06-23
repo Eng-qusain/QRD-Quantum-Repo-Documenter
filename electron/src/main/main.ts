@@ -62,43 +62,76 @@ function getPythonPath(): string {
   return systemPython;
 }
 
+function sendToWindow(channel: string, ...args: unknown[]): void {
+  mainWindow?.webContents.send(channel, ...args);
+}
+
 async function ensureDependencies(): Promise<void> {
   const backendPath = getBackendPath();
   const venvPaths: Record<string, string> = {
     win32: path.join(backendPath, '.venv', 'Scripts', 'python.exe'),
     darwin: path.join(backendPath, '.venv', 'bin', 'python'),
-    linux: path.join(backendPath, '.venv', 'bin', 'python'),
+    linux:  path.join(backendPath, '.venv', 'bin', 'python'),
   };
 
   const venvPython = venvPaths[process.platform];
   if (venvPython && fs.existsSync(venvPython)) {
-    return; // Already have bundled venv, nothing to do
+    log.info('Bundled .venv found — skipping dependency install');
+    return;
   }
 
-  log.info('Creating Python venv and installing dependencies (first run)...');
-  mainWindow?.webContents.send('backend:installing');
+  log.info('First launch — installing Python dependencies');
+  sendToWindow('backend:installing');
 
   const systemPython = process.platform === 'win32' ? 'python' : 'python3';
-  const venvDir = path.join(backendPath, '.venv');
+  const venvDir      = path.join(backendPath, '.venv');
   const requirementsTxt = path.join(backendPath, 'requirements.txt');
 
-  await new Promise<void>((resolve, reject) => {
-    const proc = spawn(systemPython, ['-m', 'venv', venvDir], { cwd: backendPath });
-    proc.on('exit', (code) => code === 0 ? resolve() : reject(new Error(`venv creation failed: ${code}`)));
-    proc.stderr?.on('data', (d) => log.error(`[venv] ${d}`));
-  });
+  try {
+    // Step 1 — create venv
+    sendToWindow('backend:install-progress', 'Creating Python virtual environment…');
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn(systemPython, ['-m', 'venv', venvDir], { cwd: backendPath });
+      proc.stderr?.on('data', (d) => log.error(`[venv] ${d}`));
+      proc.on('exit', (code) =>
+        code === 0 ? resolve() : reject(new Error(`Python venv creation failed (exit ${code}). Is Python 3.10+ installed?`))
+      );
+    });
 
-  const pipPath = process.platform === 'win32'
-    ? path.join(venvDir, 'Scripts', 'pip.exe')
-    : path.join(venvDir, 'bin', 'pip');
+    // Step 2 — install packages
+    sendToWindow('backend:install-progress', 'Installing packages (this may take a minute)…');
+    const pipPath = process.platform === 'win32'
+      ? path.join(venvDir, 'Scripts', 'pip.exe')
+      : path.join(venvDir, 'bin', 'pip');
 
-  await new Promise<void>((resolve, reject) => {
-    const proc = spawn(pipPath, ['install', '-r', requirementsTxt, '--quiet'], { cwd: backendPath });
-    proc.on('exit', (code) => code === 0 ? resolve() : reject(new Error(`pip install failed: ${code}`)));
-    proc.stderr?.on('data', (d) => log.error(`[pip] ${d}`));
-  });
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn(pipPath, ['install', '-r', requirementsTxt, '--no-cache-dir'], { cwd: backendPath });
 
-  log.info('Dependencies installed successfully');
+      proc.stdout?.on('data', (d: Buffer) => {
+        const line = d.toString().trim();
+        if (line) {
+          log.info(`[pip] ${line}`);
+          // Forward installing X lines so UI can show package name
+          if (line.startsWith('Collecting') || line.startsWith('Installing')) {
+            sendToWindow('backend:install-progress', line);
+          }
+        }
+      });
+      proc.stderr?.on('data', (d: Buffer) => log.warn(`[pip stderr] ${d.toString().trim()}`));
+      proc.on('exit', (code) =>
+        code === 0 ? resolve() : reject(new Error(`pip install failed (exit ${code}). Check logs for details.`))
+      );
+    });
+
+    log.info('Dependencies installed successfully');
+    sendToWindow('backend:install-done');
+
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.error('Dependency install failed:', msg);
+    sendToWindow('backend:install-error', msg);
+    throw err; // re-throw so startBackend is not called
+  }
 }
 
 async function startBackend(): Promise<void> {
