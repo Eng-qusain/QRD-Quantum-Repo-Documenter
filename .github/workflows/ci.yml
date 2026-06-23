@@ -112,7 +112,7 @@ jobs:
 
   # ─── Build Distributables ──────────────────────────────────────────────────
   build:
-    name: Build ${{ matrix.os }}
+    name: Build ${{ matrix.name }}
     needs: [backend-test, frontend-test]
     if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
@@ -120,12 +120,15 @@ jobs:
       matrix:
         include:
           - os: windows-latest
+            name: Windows
             build_flag: --win
             artifact: "release/*.exe"
           - os: macos-15
+            name: macOS
             build_flag: --mac
             artifact: "release/*.dmg"
           - os: ubuntu-latest
+            name: Linux
             build_flag: --linux
             artifact: "release/*.AppImage"
 
