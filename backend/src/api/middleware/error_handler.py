@@ -1,1 +1,1 @@
-from api.middleware.logging_middleware import ErrorHandlerMiddleware
+from api.middleware.logging_middleware import ErrorHandlerMiddleware as ErrorHandlerMiddleware

@@ -153,7 +153,6 @@ class ExportOrchestratorService:
 
             self._report(progress_callback, job.id, 50.0, "Building PDF...")
 
-            mode = ExportMode(options.get("mode", "single"))
             output_files = await self._build_pdfs(
                 job, scan, ai_docs, options, cancel_event, progress_callback
             )
@@ -190,6 +189,10 @@ class ExportOrchestratorService:
         job_id: str,
     ) -> dict[str, dict]:
         """Generate AI documentation for source files."""
+        documenter = self._ai_documenter
+        if documenter is None:
+            return {}
+
         source_files = [
             f for f in files
             if f.category == FileCategory.SOURCE and not f.is_binary
@@ -204,7 +207,7 @@ class ExportOrchestratorService:
             async with semaphore:
                 try:
                     content = file_info.path.read_text(errors="replace")
-                    doc = await self._ai_documenter.document_file(
+                    doc = await documenter.document_file(
                         file_path=str(file_info.path),
                         content=content,
                         language=file_info.language.value if file_info.language else "unknown",

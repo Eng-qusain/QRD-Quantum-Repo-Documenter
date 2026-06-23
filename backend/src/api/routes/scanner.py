@@ -12,7 +12,6 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 from core.services.scanner_service import ProjectScannerService
-from core.domain.entities.entities import FileCategory, Language
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -42,8 +41,7 @@ class FileNodeResponse(BaseModel):
     last_modified: str
     children: Optional[list["FileNodeResponse"]] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class ScanResponse(BaseModel):

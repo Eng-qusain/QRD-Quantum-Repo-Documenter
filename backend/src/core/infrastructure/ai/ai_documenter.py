@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,12 @@ class AIDocumenter:
 
     def __init__(self, settings) -> None:
         self._settings = settings
-        self._client = None
+        # `Any` is correct (not a stronger union type) because the anthropic
+        # and openai SDKs are optional dependencies, imported lazily inside
+        # _setup_client() only if their respective API key is configured.
+        # Importing their types at module level would break "no API key
+        # required" mode if neither package is installed.
+        self._client: Optional[Any] = None
         self._provider = "none"
         self._setup_client()
 
@@ -113,6 +118,8 @@ class AIDocumenter:
         return self._stub_documentation(file_path, language)
 
     async def _call_anthropic(self, user_message: str) -> dict:
+        if self._client is None:
+            raise RuntimeError("Anthropic client not initialized")
         response = await self._client.messages.create(
             model=self._settings.ai_model,
             max_tokens=1024,
@@ -122,6 +129,8 @@ class AIDocumenter:
         return self._parse_json_response(response.content[0].text)
 
     async def _call_openai(self, user_message: str) -> dict:
+        if self._client is None:
+            raise RuntimeError("OpenAI client not initialized")
         response = await self._client.chat.completions.create(
             model="gpt-4o-mini",
             max_tokens=1024,

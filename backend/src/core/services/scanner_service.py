@@ -16,7 +16,7 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import AsyncGenerator, Callable, Optional
+from typing import Callable, Optional
 
 from core.domain.entities.entities import (
     DirectoryNode,

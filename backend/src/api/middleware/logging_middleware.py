@@ -4,7 +4,7 @@ Middleware — Request logging and global error handling.
 import logging
 import time
 import uuid
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 

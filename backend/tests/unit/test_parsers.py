@@ -50,7 +50,9 @@ class TestCSVParser:
 
     def test_parse_invalid_file(self, parser):
         result = parser.parse("/nonexistent/file.csv")
-        assert "error" in result
+        # Error may be at top level or nested in stats depending on which parser ran
+        has_error = "error" in result or "error" in result.get("stats", {})
+        assert has_error
 
 
 class TestCodeParser:

@@ -29,7 +29,7 @@ export const ExportPage: React.FC = () => {
   const [backendPort, setBackendPort] = useState(8765);
 
   useEffect(() => {
-    window.electron?.getBackendPort().then((p) => setBackendPort(p || 8765));
+    window.electron?.getBackendPort().then((p: number) => setBackendPort(p || 8765));
   }, []);
 
   // WebSocket progress tracking

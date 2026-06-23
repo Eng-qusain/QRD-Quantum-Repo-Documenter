@@ -7,10 +7,12 @@ Generates quick-look plots using matplotlib.
 
 from __future__ import annotations
 
-import io
 import logging
+import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
+
+from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -272,9 +274,7 @@ class ProductionCSVParser:
 
 # ─── Search Routes ────────────────────────────────────────────────────────────
 
-from fastapi import APIRouter as _APIRouter
-
-search_router = _APIRouter()
+search_router = APIRouter()
 
 
 @search_router.get("/")
@@ -285,16 +285,11 @@ async def search_files(
     max_results: int = 100,
 ) -> dict:
     """Search files by name, extension, or content."""
-    from pathlib import Path
-    import fnmatch
-    import os
-
     root = Path(project_path)
     if not root.exists():
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Project path not found")
 
-    results = []
+    results: list[dict[str, Union[str, int]]] = []
     query_lower = query.lower()
 
     for dirpath, dirnames, filenames in os.walk(root):

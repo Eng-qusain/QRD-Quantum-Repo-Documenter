@@ -1,21 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
 import uiReducer, {
   setTheme, toggleTheme, addNotification, removeNotification,
   setSidebarCollapsed, setBackendStatus,
-} from '../../store/slices/uiSlice';
+} from '../store/slices/uiSlice';
 import projectReducer, {
   setProjectPath, clearProject, addExcludePattern,
   removeExcludePattern, setSelectedFiles,
-} from '../../store/slices/projectSlice';
+} from '../store/slices/projectSlice';
 import exportReducer, {
   setExportOptions, setExportMode, clearCurrentJob,
-} from '../../store/slices/exportSlice';
+} from '../store/slices/exportSlice';
 
 // ─── UI Slice ─────────────────────────────────────────────────────────────────
 
 describe('uiSlice', () => {
-  const makeStore = () => configureStore({ reducer: { ui: uiReducer } });
+  function makeStore() {
+    return configureStore({ reducer: { ui: uiReducer } });
+  }
 
   it('has correct initial state', () => {
     const store = makeStore();
@@ -78,7 +80,9 @@ describe('uiSlice', () => {
 // ─── Project Slice ────────────────────────────────────────────────────────────
 
 describe('projectSlice', () => {
-  const makeStore = () => configureStore({ reducer: { project: projectReducer } });
+  function makeStore() {
+    return configureStore({ reducer: { project: projectReducer } });
+  }
 
   it('setProjectPath sets path and name', () => {
     const store = makeStore();
@@ -109,7 +113,7 @@ describe('projectSlice', () => {
     store.dispatch(addExcludePattern('*.log'));
     store.dispatch(addExcludePattern('*.log'));
     const patterns = store.getState().project.excludePatterns;
-    const count = patterns.filter((p) => p === '*.log').length;
+    const count = patterns.filter((p: string) => p === '*.log').length;
     expect(count).toBe(1);
   });
 
@@ -130,7 +134,9 @@ describe('projectSlice', () => {
 // ─── Export Slice ─────────────────────────────────────────────────────────────
 
 describe('exportSlice', () => {
-  const makeStore = () => configureStore({ reducer: { export: exportReducer } });
+  function makeStore() {
+    return configureStore({ reducer: { export: exportReducer } });
+  }
 
   it('has correct initial state', () => {
     const store = makeStore();

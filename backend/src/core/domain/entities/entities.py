@@ -60,7 +60,6 @@ class ExportMode(str, Enum):
 class FileInfo:
     """Represents a single file in the project."""
 
-    id: str
     name: str
     path: Path
     relative_path: str
@@ -68,6 +67,7 @@ class FileInfo:
     size_bytes: int
     last_modified: datetime
     category: FileCategory
+    id: str = ""  # auto-generated in __post_init__ if empty
     language: Optional[Language] = None
     line_count: Optional[int] = None
     encoding: str = "utf-8"

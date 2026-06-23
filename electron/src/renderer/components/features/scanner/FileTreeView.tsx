@@ -7,13 +7,7 @@ import {
   Folder, FolderOpen, InsertDriveFile, Code, DataObject,
   Image, Description, BubbleChart, ChevronRight, ExpandMore,
 } from '@mui/icons-material';
-
-interface FileNode {
-  id: string; name: string; type: 'file' | 'directory';
-  relative_path: string; path: string; extension?: string;
-  language?: string; line_count?: number; size?: number;
-  children?: FileNode[];
-}
+import type { FileNode } from '../../../store/slices/projectSlice';
 
 interface Props {
   fileTree: FileNode | null;
@@ -99,9 +93,9 @@ const TreeNode: React.FC<{
             fontSize: 13,
           }}
         />
-        {!isDir && node.line_count ? (
+        {!isDir && node.lineCount ? (
           <Typography variant="caption" color="text.disabled" sx={{ ml: 1, flexShrink: 0 }}>
-            {node.line_count.toLocaleString()}L
+            {node.lineCount.toLocaleString()}L
           </Typography>
         ) : null}
       </ListItemButton>
@@ -132,7 +126,7 @@ export const FileTreeView: React.FC<Props> = ({
   const filteredFiles = useMemo(() => {
     if (!searchQuery) return flatFiles;
     const q = searchQuery.toLowerCase();
-    return flatFiles.filter((f) => f.name.toLowerCase().includes(q) || f.relative_path.toLowerCase().includes(q));
+    return flatFiles.filter((f) => f.name.toLowerCase().includes(q) || f.relativePath.toLowerCase().includes(q));
   }, [flatFiles, searchQuery]);
 
   // List / search view — flat results
@@ -152,13 +146,13 @@ export const FileTreeView: React.FC<Props> = ({
               <ListItemIcon sx={{ minWidth: 28 }}>{getFileIcon(f)}</ListItemIcon>
               <ListItemText
                 primary={f.name}
-                secondary={f.relative_path}
+                secondary={f.relativePath}
                 primaryTypographyProps={{ variant: 'body2', noWrap: true }}
                 secondaryTypographyProps={{ variant: 'caption', noWrap: true }}
               />
-              {f.line_count && (
+              {f.lineCount && (
                 <Typography variant="caption" color="text.disabled">
-                  {f.line_count.toLocaleString()}L
+                  {f.lineCount.toLocaleString()}L
                 </Typography>
               )}
             </ListItemButton>

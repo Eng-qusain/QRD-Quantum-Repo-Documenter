@@ -4,8 +4,6 @@ RepoDoc Pro Backend — FastAPI Application Entry Point
 
 import argparse
 import logging
-import os
-import sys
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 

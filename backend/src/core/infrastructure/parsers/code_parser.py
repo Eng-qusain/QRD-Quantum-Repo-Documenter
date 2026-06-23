@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +260,23 @@ class CodeParser:
             content,
         )
         classes = re.findall(r"class\s+(\w+)", content)
-        imports = re.findall(r'(?:import|require)\s*[({]?\s*["\']([^"\']+)["\']', content)
+
+        # Handles: import X from '...', import { X } from '...', import type X from '...',
+        # import '...', require('...')
+        import_pattern = re.compile(
+            r"""(?x)
+                (?:
+                    import\s+(?:type\s+)?
+                    (?:[^'";\n]*?\s+from\s+)?
+                    ['"]([^'"]+)['"]
+                )
+                |
+                (?:require\s*\(\s*['"]([^'"]+)['"]\s*\))
+            """,
+            re.MULTILINE,
+        )
+        raw = import_pattern.findall(content)
+        imports = list(set(m[0] or m[1] for m in raw if m[0] or m[1]))
 
         func_names = [f[0] or f[1] for f in functions if f[0] or f[1]]
         return {

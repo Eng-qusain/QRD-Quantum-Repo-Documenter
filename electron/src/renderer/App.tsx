@@ -18,7 +18,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     // Load persisted theme on startup
-    window.electron?.storeGet('theme').then((theme) => {
+    window.electron?.storeGet('theme').then((theme: unknown) => {
       if (theme === 'light' || theme === 'dark') {
         dispatch(setTheme(theme));
       }
