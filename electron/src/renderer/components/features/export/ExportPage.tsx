@@ -2,16 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Box, Grid, Card, CardContent, Typography, Button, FormControl,
   InputLabel, Select, MenuItem, Switch, FormControlLabel, Slider,
-  TextField, Divider, LinearProgress, Stack, Chip, Alert,
-  ToggleButtonGroup, ToggleButton, useTheme, Stepper, Step, StepLabel,
+  Divider, LinearProgress, Stack, Chip, Alert, useTheme,
 } from '@mui/material';
 import {
-  PlayArrow, Stop, FolderOpen, Description, CheckCircle, Error as ErrorIcon,
+  PlayArrow, Stop, FolderOpen, Description,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { setExportOptions, startExport, cancelExport, clearCurrentJob, updateJobProgress } from '../../../store/slices/exportSlice';
 import { addNotification } from '../../../store/slices/uiSlice';
-import { apiClient } from '../../../utils/apiClient';
 
 const EXPORT_MODES = [
   { value: 'single', label: 'Single PDF', desc: 'One combined PDF for the whole project' },
@@ -135,7 +133,7 @@ export const ExportPage: React.FC = () => {
                 {EXPORT_MODES.map((m) => (
                   <Grid item xs={6} key={m.value}>
                     <Box
-                      onClick={() => dispatch(setExportOptions({ mode: m.value as any }))}
+                      onClick={() => dispatch(setExportOptions({ mode: m.value as 'single' | 'folder' | 'file' | 'package' }))}
                       sx={{
                         p: 1.5, borderRadius: 2, cursor: 'pointer',
                         border: `2px solid ${options.mode === m.value ? theme.palette.primary.main : theme.palette.divider}`,
