@@ -46,13 +46,14 @@ jobs:
         run: |
           pip install ruff mypy
           ruff check src/
-          mypy src/ --ignore-missing-imports
+          PYTHONPATH=src mypy src/ --ignore-missing-imports
 
       - name: Run tests
         working-directory: backend
         run: pytest --cov=src --cov-report=xml --cov-fail-under=80
         env:
           REPODOC_ENV: test
+          PYTHONPATH: src
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -66,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ["18", "20"]
+        node-version: ["20", "22"]
 
     steps:
       - uses: actions/checkout@v4
@@ -75,12 +76,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
-          cache-dependency-path: electron/package-lock.json
+          # No built-in cache here — electron/package-lock.json may not be
+          # committed yet. Caching is handled manually below so a missing
+          # lockfile never fails the whole job.
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ matrix.node-version }}-${{ hashFiles('electron/package-lock.json', 'electron/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-${{ matrix.node-version }}-
 
       - name: Install dependencies
         working-directory: electron
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "::warning::No package-lock.json found — running npm install instead of npm ci. Commit the lockfile for reproducible builds."
+            npm install
+          fi
 
       - name: Type check
         working-directory: electron
@@ -125,8 +141,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: electron/package-lock.json
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-build-${{ hashFiles('electron/package-lock.json', 'electron/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-build-
 
       - name: Install system deps (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -153,7 +175,14 @@ jobs:
 
       - name: Install frontend deps
         working-directory: electron
-        run: npm ci
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "::warning::No package-lock.json found — running npm install instead of npm ci."
+            npm install
+          fi
 
       - name: Build and package
         working-directory: electron
