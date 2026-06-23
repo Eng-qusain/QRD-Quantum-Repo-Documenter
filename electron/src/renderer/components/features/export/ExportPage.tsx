@@ -196,7 +196,7 @@ export const ExportPage: React.FC = () => {
                     <Select
                       value={options.paperSize}
                       label="Paper Size"
-                      onChange={(e) => dispatch(setExportOptions({ paperSize: e.target.value as any }))}
+                      onChange={(e) => dispatch(setExportOptions({ paperSize: e.target.value as 'A4' | 'Letter' | 'A3' }))}
                     >
                       {['A4', 'Letter', 'A3'].map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
                     </Select>
@@ -208,7 +208,7 @@ export const ExportPage: React.FC = () => {
                     <Select
                       value={options.theme}
                       label="Theme"
-                      onChange={(e) => dispatch(setExportOptions({ theme: e.target.value as any }))}
+                      onChange={(e) => dispatch(setExportOptions({ theme: e.target.value as 'default' | 'dark' | 'github' | 'monokai' }))}
                     >
                       {['default', 'dark', 'github', 'monokai'].map((t) => (
                         <MenuItem key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</MenuItem>
@@ -222,7 +222,7 @@ export const ExportPage: React.FC = () => {
                     <Select
                       value={options.orientation}
                       label="Orientation"
-                      onChange={(e) => dispatch(setExportOptions({ orientation: e.target.value as any }))}
+                      onChange={(e) => dispatch(setExportOptions({ orientation: e.target.value as 'portrait' | 'landscape' }))}
                     >
                       <MenuItem value="portrait">Portrait</MenuItem>
                       <MenuItem value="landscape">Landscape</MenuItem>
