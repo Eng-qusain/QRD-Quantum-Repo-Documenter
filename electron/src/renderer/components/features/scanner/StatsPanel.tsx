@@ -2,7 +2,18 @@ import React from 'react';
 import { Box, Grid, Card, CardContent, Typography, LinearProgress, Stack, Chip, useTheme, alpha } from '@mui/material';
 import { InsertDriveFile, Code, Analytics, Storage } from '@mui/icons-material';
 
-interface Props { stats: any; }
+interface ProjectStats {
+  totalFiles: number;
+  totalLines: number;
+  totalSizeBytes: number;
+  languageDistribution: Record<string, number>;
+  extensionDistribution: Record<string, number>;
+  largestFiles: Array<{ name: string; sizeBytes: number }>;
+  averageFileSize: number;
+  averageLineCount: number;
+}
+
+interface Props { stats: ProjectStats | null; }
 
 function formatSize(bytes: number): string {
   if (!bytes) return '0 B';
