@@ -44,6 +44,10 @@ const ALLOWED_RECEIVE_CHANNELS = [
   'menu:about',
   'menu:open-recent',
   'backend:crashed',
+  'backend:installing',
+  'backend:install-progress',
+  'backend:install-done',
+  'backend:install-error',
   'updater:update-available',
   'updater:update-downloaded',
 ] as const;
