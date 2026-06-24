@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import {
-  removeNotification, setUpdateAvailable, setUpdateDownloaded, setBackendStatus,
+  removeNotification, setBackendStatus,
 } from '../../store/slices/uiSlice';
 import { apiClient } from '../../utils/apiClient';
 
