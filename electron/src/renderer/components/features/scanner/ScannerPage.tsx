@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   Box, Grid, Typography, TextField, InputAdornment,
   IconButton, Chip, Stack, ToggleButtonGroup,
-  ToggleButton, Tooltip, useTheme, alpha, CircularProgress,
+  ToggleButton, Tooltip, useTheme, CircularProgress,
 } from '@mui/material';
 import {
   Search, Clear, ViewList, AccountTree, BarChart, FolderOpen,
