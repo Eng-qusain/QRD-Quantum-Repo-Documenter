@@ -417,9 +417,17 @@ app.whenReady().then(async () => {
     log.info('Backend started successfully');
   } catch (err) {
     log.error('Failed to start backend:', err);
+    const platform = process.platform;
+    const pythonGuide =
+      platform === 'win32'
+        ? 'Windows:\n  1. Go to https://python.org/downloads\n  2. Download Python 3.11 or newer\n  3. Run the installer — CHECK "Add Python to PATH"\n  4. Restart RepoDoc Pro'
+        : platform === 'darwin'
+        ? 'macOS:\n  1. Open Terminal\n  2. Run: brew install python3\n     (or download from https://python.org/downloads)\n  3. Restart RepoDoc Pro'
+        : 'Linux:\n  Ubuntu/Debian:  sudo apt install python3 python3-venv\n  Fedora:         sudo dnf install python3\n  Arch:           sudo pacman -S python\n  Then restart RepoDoc Pro';
+
     dialog.showErrorBox(
-      'Backend Error',
-      `Failed to start the RepoDoc Pro backend.\n\nError: ${err}\n\nPlease ensure Python 3.10+ is installed and try again.`
+      'Python Not Found — Setup Required',
+      `RepoDoc Pro needs Python 3.10 or newer to run its backend engine.\n\nError: ${err}\n\n──────────────────────────────\nHow to fix it:\n\n${pythonGuide}\n──────────────────────────────\n\nAfter installing Python, restart RepoDoc Pro and it will set itself up automatically.`
     );
   }
 
